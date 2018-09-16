@@ -36,9 +36,18 @@ class ClientController extends Controller
         if (!Auth::user()->can('查看所有客户')) {
             $builder->where('belong_service', Auth::user()->id);
         }
+        $builder->orderBy('order_at', 'desc')->orderBy('id', 'desc');
         $filter = DataFilter::source($builder);
 
-        $filter->add('status', '状态', 'hidden');
+        $filter->add('status', '状态', 'hidden')->scope(
+            function ($query, $value) {
+                if ($value == '未接触客户') {
+                    return $query->where('status', $value)->orWhere('status', null)->orWhere('status', '');
+                } else {
+                    return $query->where('status', $value);
+                }
+            }
+        );
  
         $filter->add('keywords', '输入客户名称、电话、车牌', 'text')->scope(
             function ($query, $value) {
@@ -66,17 +75,23 @@ class ClientController extends Controller
         }
 
         $grid->add('id', 'ID', true);
-        $grid->add('name', '客户姓名');
+        $grid->add('name', '客户姓名')->cell(function($value, $row) {
+            if (Auth::user()->can('编辑客户') || Auth::user()->can('追踪客户')) {
+                return '<a href="'.route('client.edit', ['id' => $row->id]).'">'.$value.'</a>';
+            } else {
+                return $value;
+            }
+        });
         $grid->add('plate_number', '车牌');
-        $grid->add('phone1', '电话');
+        $grid->add('vin', '车架号');
         $grid->add('service.name', '坐席');
         $grid->add('from_batch', '批次');
         $grid->add('status', '状态');
         $grid->add('insure_type', '保单类型');
         $grid->add('insure_created_at', '起保时间');
         $grid->add('insure_sent_at', '送单时间');
-        $grid->add('order_at', '预约时间');
-        $grid->add('creator.name', '创建者');
+        $grid->add('order_at', '预约时间', true);
+        // $grid->add('creator.name', '创建者');
         if (Auth::user()->can('删除客户') || Auth::user()->can('编辑客户')) {
             if (Auth::user()->can('编辑客户') || Auth::user()->can('追踪客户')) {
                 $oprate[] = 'modify';
@@ -133,7 +148,6 @@ class ClientController extends Controller
         }
 
 
-        $grid->orderBy('id', 'desc');
         $grid->paginate(30);
         return view('datagrid', compact('filter', 'grid'));
     }

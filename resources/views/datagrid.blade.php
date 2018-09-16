@@ -11,6 +11,7 @@
 @endsection
 
 @section('script')
+<script type="text/javascript" src="{{ asset('/lib/My97DatePicker/4.8/WdatePicker.js') }}"></script> 
 <script>
 	function datagrid_delete_multi() {
 		var ids = [];

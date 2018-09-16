@@ -7,6 +7,7 @@ use Zofe\Rapyd\DataGrid\DataGrid;
 use Zofe\Rapyd\Facades\DataForm;
 use App\Client;
 use App\Trace;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class TraceController extends Controller
@@ -31,7 +32,7 @@ class TraceController extends Controller
     {
         $clientId = $request->input('client_id');
         $form = $this->form($clientId);
-        return view('dataform', compact('form'));
+        return view('trace.form', compact('form'));
     }
 
     /**
@@ -74,9 +75,16 @@ class TraceController extends Controller
         $form->add('order_at', '预约时间', 'text')->attributes(
             [
                 'class' => 'input-text Wdate',
-                'onClick' => 'WdatePicker({dateFmt:"yyyy-MM-dd"})'
+                'onClick' => 'WdatePicker({dateFmt:"yyyy-MM-dd HH:mm:ss"})'
             ]
         )->insertValue($client->order_at);
+
+        $form->add('created_at', '成交时间', 'text')->attributes(
+            [
+                'class' => 'input-text Wdate',
+                'onClick' => 'WdatePicker({dateFmt:"yyyy-MM-dd HH:mm:ss"})'
+            ]
+        )->insertValue(Carbon::now()->toDateTimeString());
 
         $form->add('note', '备注', 'textarea')->attributes(
             [

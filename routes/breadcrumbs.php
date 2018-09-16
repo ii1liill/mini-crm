@@ -73,6 +73,10 @@ Breadcrumbs::for('permission', function ($trail) {
     $trail->push('权限管理', route('permission'));
 });
 
+Breadcrumbs::for('report', function ($trail) {
+    $trail->push('查看报表', route('report'));
+});
+
 Breadcrumbs::for('permission.create', function ($trail) {
     $trail->parent('permission');
     $trail->push('创建权限', route('permission.create'));

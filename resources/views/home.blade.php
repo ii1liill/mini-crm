@@ -66,10 +66,10 @@
 				<dt><i class="Hui-iconfont">&#xe60d;</i> 客户管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
 				<dd>
 					<ul>
-						<li><a data-href="{{ route('client') }}" data-title="客户列表" href="javascript:;">客户列表</a></li>
 						@foreach (setting('client_status') as $item)
 						<li><a data-href="{{ route('client', ['status' => $item, 'search' => 1]) }}" data-title="{{ $item }}" href="javascript:;">{{ $item }}</a></li>
 						@endforeach
+						<li><a data-href="{{ route('client') }}" data-title="客户列表" href="javascript:;">客户列表</a></li>
 					</ul>
 				</dd>
 		</dl>
@@ -79,10 +79,10 @@
 			<dt><i class="Hui-iconfont">&#xe60d;</i> 报表管理<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
 			<dd>
 				<ul>
-					<li><a data-href="{{ route('report') }}" data-title="日报表" href="javascript:;">日报表</a></li>
-					<li><a data-href="{{ route('report') }}" data-title="月报表" href="javascript:;">月报表</a></li>
+					<li><a data-href="{{ route('report') }}" data-title="日报表" href="javascript:;">报表</a></li>
+					{{--  <li><a data-href="{{ route('report') }}" data-title="月报表" href="javascript:;">月报表</a></li>
 					<li><a data-href="{{ route('report') }}" data-title="传统报表" href="javascript:;">传统报表</a></li>
-					<li><a data-href="{{ route('report') }}" data-title="名单报表" href="javascript:;">名单报表</a></li>
+					<li><a data-href="{{ route('report') }}" data-title="名单报表" href="javascript:;">名单报表</a></li>  --}}
 				</ul>
 			</dd>
 		</dl>
