@@ -60,6 +60,7 @@ Route::middleware('auth')->group(
         ); 
 
         // 客户追踪
+        Route::get('trace', 'TraceController@index')->middleware('permission:查看客户')->name('trace');
         Route::any('trace/create', 'TraceController@create')->middleware('permission:追踪客户')->name('trace.create');
         
         // 系统设置
@@ -69,6 +70,9 @@ Route::middleware('auth')->group(
                 'update' => 'setting.update'
             ]
         );
+
+        // 图片上传
+        Route::post('upload', 'UploadController@images')->name('upload.image');
 
         Route::get('system/log', 'ActivityController@index')->middleware('permission:系统日志')->name('system.log');
 

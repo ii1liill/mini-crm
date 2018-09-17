@@ -27,7 +27,7 @@ class UserPost extends FormRequest
             //
             'password' => 'required|min:6',
             'name' => 'sometimes|required|unique:users',
-            'email' => 'sometimes|required|unique:users'
+            'mobile' => 'sometimes|required|unique:users'
         ];
         return $rules;
     }

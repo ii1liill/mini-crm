@@ -10,12 +10,18 @@ Breadcrumbs::for('clients', function ($trail) {
 });
  
 Breadcrumbs::for('client', function ($trail) {
+    $requestAll = Request::all();
     $trail->parent('clients');
-    $trail->push('客户列表', route('client'));
+    $trail->push('客户列表'.(!empty($requestAll['status']) ? ':'.e($requestAll['status']) : ''), route('client'));
+});
+
+Breadcrumbs::for('client.back', function ($trail) {
+    $trail->parent('clients');
+    $trail->push('客户列表', 'javascript:history.back()');
 });
 
 Breadcrumbs::for('client.edit', function ($trail, $client) {
-    $trail->parent('client');
+    $trail->parent('client.back');
     if (isset($client->id)) {
         $id = $client->id;
     } else {
@@ -25,7 +31,7 @@ Breadcrumbs::for('client.edit', function ($trail, $client) {
 });
 
 Breadcrumbs::for('client.create', function ($trail) {
-    $trail->parent('client');
+    $trail->parent('client.back');
     $trail->push('添加客户');
 });
 

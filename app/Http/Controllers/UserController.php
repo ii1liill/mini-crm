@@ -27,7 +27,7 @@ class UserController extends Controller
             }
         );
         $grid->add('name', '用户名');
-        $grid->add('email', '邮箱');
+        $grid->add('mobile', '电话');
         $grid->add('roles', '角色')->cell(
             function ($value, $row) {
                 return implode("|", $value->pluck('name')->toArray());
@@ -97,7 +97,7 @@ class UserController extends Controller
         $source = $id ? User::find($id) : new User;
         $form = DataForm::source($source);
         $form->add('name', '用户名', 'text')->rule('required'.( !$id ? '|unique:users' : '' ));
-        $form->add('email', '邮箱', 'text')->rule('required'.( !$id ? '|unique:users' : '' ));
+        $form->add('mobile', '电话', 'text')->rule('required'.( !$id ? '|unique:users' : '' ));
         $form->add('password', '密码', 'password');
         $form->add('roles', '分配角色', 'checkboxgroup')->options(Role::pluck('name', 'id')->all());
 

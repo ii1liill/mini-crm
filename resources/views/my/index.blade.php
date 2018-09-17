@@ -13,9 +13,9 @@
                     </div>
                     <div class="row cl">
                             <label class="form-label col-xs-4 col-sm-2">
-                                邮箱 </label>
+                                电话 </label>
                             <div class="formControls col-xs-8 col-sm-9">
-                            <input type="text" readonly="true" value="{{Auth::user()->email}}" class="input-text">
+                            <input type="text" readonly="true" value="{{Auth::user()->mobile}}" class="input-text">
                             </div>
                         </div>
                     <div class="row cl">

@@ -17,10 +17,17 @@ class TraceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
-        $grid = DataGrid::source(new Trace());
+        $grid = DataGrid::source(Trace::where('client_id', $request->input('client_id')));
+        $grid->add('created_at', '备注时间', true);
+        $grid->add('call_status', '通话状态');
+        $grid->add('status', '客户状态');
+        $grid->add('order_at', '预约时间');
+        $grid->add('note', '备注信息');
+        $grid->orderBy('created_at', 'desc');
+
+        return view('partials.datagrid', compact('grid'));
     }
 
     /**
@@ -32,7 +39,7 @@ class TraceController extends Controller
     {
         $clientId = $request->input('client_id');
         $form = $this->form($clientId);
-        return view('trace.form', compact('form'));
+        return $form->view('trace.form', compact('form'));
     }
 
     /**
@@ -54,6 +61,11 @@ class TraceController extends Controller
         }
         $source = $id ? Trace::find($id) : new Trace;
         $form = DataForm::source($source);
+        $form->attributes(
+            [
+                'id' => 'traceForm'
+            ]
+        );
         $form->add('belong_service', '', 'auto')->insertValue(Auth::user()->id);
         $form->add('client_id', $client->id, 'hidden')->insertValue($client->id);
         $form->add('client_name', '客户', 'text')->attributes(
@@ -70,8 +82,16 @@ class TraceController extends Controller
         foreach (setting('client_status') as $value) {
             $clientStatus[$value] = $value;
         }
-        $form->add('call_status', '接听状态', 'radiogroup')->options($callStatus)->rule('required');
-        $form->add('status', '客户状态', 'select')->options($clientStatus)->rule('required')->insertValue($client->status);
+        $form->add('call_status', '接听状态', 'radiogroup')->options($callStatus)->attributes(
+            [
+                'required' => 'true'
+            ]
+        )->rule('required');
+        $form->add('status', '客户状态', 'select')->options($clientStatus)->rule('required')->insertValue($client->status)->attributes(
+            [
+                'required' => ''
+            ]
+        );
         $form->add('order_at', '预约时间', 'text')->attributes(
             [
                 'class' => 'input-text Wdate',
@@ -116,8 +136,8 @@ class TraceController extends Controller
                     ]
                 )
                 ->log('追踪客户：'.$client->name);
-            $form->message("<div class='text-c c-green' style='font-weight:bold;font-size:18px;'>完成</div><script>window.parent.location.reload();</script>");
-             
+            // $form->message("OK");
+            // return response()->json('OK');
             // return Redirect::to('role');
             // $form->link(route('permission'), "back to the form");
         });

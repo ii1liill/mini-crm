@@ -19,6 +19,7 @@ class Client extends Model
      */
     protected $dates = [
         'created_at',
+        'reg_at',
         'updated_at',
         'deleted_at',
         'order_at',
@@ -29,6 +30,9 @@ class Client extends Model
         'prev_insure_create_at'
     ];
 
+    protected $casts = [
+        'pics' => 'array',
+    ];
     /**
      * 一对一创建者
      *
@@ -38,6 +42,17 @@ class Client extends Model
     {
         return $this->hasOne('App\User', 'id', 'create_by');
     }
+
+    /**
+     * 最后一条追踪
+     *
+     * @return void
+     */
+    public function lastNote()
+    {
+        return $this->hasOne('App\Trace', 'client_id', 'id')->whereNotNull('note')->orderBy('id', 'desc');
+    }
+    
     /**
      * Undocumented function
      *

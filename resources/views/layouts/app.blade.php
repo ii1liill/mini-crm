@@ -55,6 +55,7 @@
 <script type="text/javascript" src="{{asset("/static/h-ui/js/H-ui.min.js")}}"></script>
 <script type="text/javascript" src="{{asset("/static/h-ui.admin/js/H-ui.admin.js")}}"></script> 
 <script>
+    var BASE_URL = '{{ url('') }}';
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

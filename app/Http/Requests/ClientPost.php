@@ -28,8 +28,7 @@ class ClientPost extends FormRequest
             'name' => 'required',
             'phone1' => 'required',
             'plate_number' => 'required',
-            'insure_created_at' => 'required',
-            'created_at' => 'required'
+            'insure_created_at' => 'required'
         ];
         return $rules;
     }

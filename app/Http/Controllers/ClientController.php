@@ -32,7 +32,7 @@ class ClientController extends Controller
     {
         //
         // $clients = Client::
-        $builder = Client::with(['creator', 'service']);
+        $builder = Client::with(['creator', 'service', 'lastNote']);
         if (!Auth::user()->can('查看所有客户')) {
             $builder->where('belong_service', Auth::user()->id);
         }
@@ -82,15 +82,34 @@ class ClientController extends Controller
                 return $value;
             }
         });
-        $grid->add('plate_number', '车牌');
+        $grid->add('plate_number', '车牌')->cell(function($value, $row) {
+            if (Auth::user()->can('编辑客户') || Auth::user()->can('追踪客户')) {
+                return '<a href="'.route('client.edit', ['id' => $row->id]).'">'.$value.'</a>';
+            } else {
+                return $value;
+            }
+        });
         $grid->add('vin', '车架号');
         $grid->add('service.name', '坐席');
         $grid->add('from_batch', '批次');
         $grid->add('status', '状态');
-        $grid->add('insure_type', '保单类型');
-        $grid->add('insure_created_at', '起保时间');
-        $grid->add('insure_sent_at', '送单时间');
-        $grid->add('order_at', '预约时间', true);
+        // $grid->add('insure_type', '保单类型');
+        // $grid->add('insure_created_at', '起保时间')->cell(
+        //     function ($value) {
+        //         return $value ? $value->toDateString() : '';
+        //     }
+        // );
+        // $grid->add('reg_at', '初次登记时间')->cell(
+        //     function ($value) {
+        //         return $value ? $value->toDateString() : '';
+        //     }
+        // );
+        $grid->add('lastNote.note', '备注');
+        $grid->add('order_at', '预约时间', true)->cell(
+            function ($value) {
+                return $value ? $value->toDateString() : '';
+            }
+        );
         // $grid->add('creator.name', '创建者');
         if (Auth::user()->can('删除客户') || Auth::user()->can('编辑客户')) {
             if (Auth::user()->can('编辑客户') || Auth::user()->can('追踪客户')) {
@@ -148,7 +167,7 @@ class ClientController extends Controller
         }
 
 
-        $grid->paginate(30);
+        $grid->paginate(10);
         return view('datagrid', compact('filter', 'grid'));
     }
 
@@ -160,7 +179,7 @@ class ClientController extends Controller
     public function create()
     {
         //
-        return view("client.edit", ['client' => new Client]);
+        return view("client.edit", ['client' => new Client, 'trace' => null]);
     }
 
     /**
@@ -206,14 +225,8 @@ class ClientController extends Controller
         //
         $client = $this->getClient($id);
 
-        $trace = DataGrid::source(Trace::where('client_id', $id));
-        $trace->add('created_at', '备注时间');
-        $trace->add('call_status', '通话状态');
-        $trace->add('status', '客户状态');
-        $trace->add('order_at', '预约时间');
-        $trace->add('note', '备注信息');
-        $trace->orderBy('created_at', 'desc');
-        return view("client.edit", compact('client', 'trace'));
+         
+        return view("client.edit", compact('client'));
 
     }
 
@@ -313,7 +326,7 @@ class ClientController extends Controller
         }
         $clients = $builder->get();
         $file = urlencode('客户列表_'.date('Y-m-d').'.xlsx');
-        $map = config('cfmap.maps');
+        $map = config('cfmap.export_maps');
         activity('客户')
             ->causedBy(Auth::user())
             ->log('导出客户');
