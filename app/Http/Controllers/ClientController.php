@@ -249,6 +249,9 @@ class ClientController extends Controller
             return response('Not Found', 404);
         }
         $input = $request->except(['_token', '_method', 'id']);
+        if (empty($input['pics'])) {
+            $input['pics'] = null;
+        }
         $client->update($input);
         activity('客户')
                 ->causedBy(Auth::user())
