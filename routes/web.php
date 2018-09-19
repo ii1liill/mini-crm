@@ -51,6 +51,7 @@ Route::middleware('auth')->group(
         Route::get('client/export', 'ClientController@export')->middleware('permission:批量导出客户')->name('client.export');
         Route::get('client/import', 'ClientController@import')->middleware('permission:批量导入客户')->name('client.import');
         Route::post('client/import/post', 'ClientController@postImport')->name('client.import.post');
+        Route::post('client/attachService', 'ClientController@attachService')->name('client.attachService');
         // 客户管理
         Route::resource('client', 'ClientController')->middleware('permission:查看客户')->names(
             [

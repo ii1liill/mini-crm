@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Client;
+use App\User;
 use App\Batch;
+use App\Trace;
+use App\Client;
+use Illuminate\Http\Request;
 use Zofe\Rapyd\Facades\DataGrid;
 use App\Http\Requests\ClientPost;
 use Zofe\Rapyd\Facades\DataFilter;
 use Illuminate\Support\Facades\Auth;
 use Rap2hpoutre\FastExcel\FastExcel;
-use App\Trace;
 
 class ClientController extends Controller
 {
@@ -28,7 +29,7 @@ class ClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         //
         // $clients = Client::
@@ -42,9 +43,13 @@ class ClientController extends Controller
         $filter->add('status', '状态', 'hidden')->scope(
             function ($query, $value) {
                 if ($value == '未接触客户') {
-                    return $query->where('status', $value)->orWhere('status', null)->orWhere('status', '');
-                } else {
+                    return $query->where(function($query) use ($value) {
+                        return $query->where('status', $value)->orWhere('status', null)->orWhere('status', '');
+                    });
+                } elseif ($value) {
                     return $query->where('status', $value);
+                } else {
+                    return $query;
                 }
             }
         );
@@ -58,7 +63,7 @@ class ClientController extends Controller
                     ->orWhere('plate_number', 'like', "%$value%");
                 });
             }
-        )->attr(['class' => 'input-text', 'style' => 'width: 250px']);
+        )->attr(['class' => 'input-text', 'autocomplete' => 'off', 'style' => 'width: 250px']);
         
         $filter->submit('搜索', 'BL', ['class' => 'btn btn-success radius']);
         $filter->reset('重置', 'BL', ['class' => 'btn btn-default radius']);
@@ -166,8 +171,9 @@ class ClientController extends Controller
             );  //add button
         }
 
+        $perPage = $request->input('perpage', 10);
 
-        $grid->paginate(10);
+        $grid->paginate($perPage);
         return view('datagrid', compact('filter', 'grid'));
     }
 
@@ -225,7 +231,10 @@ class ClientController extends Controller
         //
         $client = $this->getClient($id);
 
-         
+        if ($client->belong_service != Auth::user()->id && !Auth::user()->can('查看所有客户')) {
+            flash('您不能编辑该用户')->error();
+            return redirect()->back();
+        }
         return view("client.edit", compact('client'));
 
     }
@@ -271,6 +280,10 @@ class ClientController extends Controller
      */
     public function destroy($id)
     {
+        if (!Auth::user()->can('删除客户')) {
+            flush('您无权删除。')->error();
+            return false;
+        }
         $id = explode(",", $id);
         Client::whereIn('id', $id)->delete();
         activity('客户')
@@ -280,6 +293,38 @@ class ClientController extends Controller
         flash("删除成功。")->success();
     }
 
+    /**
+     * 批量分配坐席
+     *
+     * @return nothing
+     */
+    public function attachService(Request $request)
+    {
+        if (!Auth::user()->can('批量分配坐席')) {
+            flush('您无权分配。')->error();
+            return false;
+        }
+        $ids = $request->input('ids');
+        $serviceId = $request->input('serviceId');
+        $service = User::find($serviceId);
+        $result = Client::whereIn('id', $ids)->update(
+            [
+                'belong_service' => $serviceId
+            ]
+        );
+
+        activity('客户')
+                ->causedBy(Auth::user())
+                ->withProperties(
+                    [
+                        '坐席' => $service->name,
+                        '数量' => $result
+                    ]
+                )
+                ->log('分配坐席');
+        flash("成功将".$result.'个客户分配给坐席：'.$service->name)->success();
+    }
+
     public function import()
     {
         return view("client.import");
@@ -287,14 +332,16 @@ class ClientController extends Controller
 
     public function postImport(Request $request)
     {
+        set_time_limit(0);
         $file = $request->file('upload_excel');
         $fromBatch = $request->input('from_batch');
         $belongService = $request->input('belong_service');
         $realPath = $file->getRealPath();
-        $importIds = [];
+        // $importIds = [];
+        $importCount = 0;
         $map = config('cfmap.maps');
         (new FastExcel)
-            ->import($file, function($line) use ($map, &$importIds, $fromBatch, $belongService) {
+            ->import($file, function($line) use ($map, &$importCount, $fromBatch, $belongService) {
                 $data = [];
                 foreach ($map as $key => $v) {
                     if (!empty($line[$v])) {
@@ -308,13 +355,14 @@ class ClientController extends Controller
                 $data['from_batch'] = $fromBatch;
                 $data['belong_service'] = $belongService;
                 $client = Client::create($data);
-                $importIds[] = $client->id;
+                // $importIds[] = $client->id;
+                $importCount ++;
                 return $client;
             });
         
         activity('客户')
                 ->causedBy(Auth::user())
-                ->withProperties(['batch' => $fromBatch, 'count' => count($importIds)])
+                ->withProperties(['batch' => $fromBatch, 'count' => $importCount])
                 ->log('导入客户');
 
         flash('导入成功。')->success();
@@ -323,6 +371,7 @@ class ClientController extends Controller
 
     public function export()
     {
+        set_time_limit(0);
         $builder = Client::with(['creator', 'service']);
         if (!Auth::user()->can('查看所有客户')) {
             $builder->where('belong_service', Auth::user()->id);

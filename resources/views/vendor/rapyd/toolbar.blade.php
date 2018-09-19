@@ -11,6 +11,18 @@
                 <h2>{!! $label !!}</h2>
             </div>
             @endif
+            
+            @if (Auth::user()->can('批量分配坐席') &&  Route::currentRouteName() == 'client')
+            <div class="pull-left" style="margin-right:5px;">
+                    <select name="attach_service" class="input-text" id="attach_service" onChange="attach_service()">
+                            <option value="">分配坐席</option>
+                            @foreach (\App\User::pluck('name', 'id') as $id => $name)
+                            <option value="{{ $id }}">{{ $name }}</option>
+                            @endforeach
+                        </select>
+            </div>
+            @endif
+
             @if (isset($buttons_left) && count($buttons_left))
             <div class="pull-left">
                 @foreach ($buttons_left as $button) {!! $button !!}

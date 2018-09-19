@@ -48,6 +48,20 @@
     <div class="btn-toolbar mt-20" role="toolbar">
         @if ($dg->havePagination())
             <div class="pull-left">
+                @if (Auth::user()->can('删除客户'))
+                    <div class="pull-left">
+                        每页显示: <select class="input-text" style="width:80px;" name="perpage" id="perpage" onChange="location.href=changeURLArg(location.href, 'perpage', this.value)">
+                                <option value="10" {{ Request::input('perpage') == 10 ? 'selected' : '' }}>10条</option>
+                                <option value="50" {{ Request::input('perpage') == 50 ? 'selected' : '' }}>50条</option>
+                                <option value="100" {{ Request::input('perpage') == 100 ? 'selected' : '' }}>100条</option>
+                                <option value="200" {{ Request::input('perpage') == 200 ? 'selected' : '' }}>200条</option>
+                                <option value="300" {{ Request::input('perpage') == 300 ? 'selected' : '' }}>300条</option>
+                                <option value="400" {{ Request::input('perpage') == 400 ? 'selected' : '' }}>400条</option>
+                                <option value="500" {{ Request::input('perpage') == 500 ? 'selected' : '' }}>500条</option>
+                            </select>
+                        </div>
+                @endif
+                
                 {!! $dg->links() !!}
             </div>
             {{-- <div class="pull-right rpd-total-rows">
